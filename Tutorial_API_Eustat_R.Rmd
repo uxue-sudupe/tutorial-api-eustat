@@ -3,8 +3,6 @@ title: "Tutorial API Eustat"
 output: html_document
 ---
 
-[![Abrir con mybinder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/uxue-sudupe/tutorial-api-eustat/main?urlpath=rstudio&binder_url=https%3A%2F%2Fnotebooks.gesis.org%2Fbinder)
-
 **Introducción**
 
 Este tutorial pretende servir de ayuda para las personas que quieran realizar consultas y obtener datos de la web de Eustat vía API. Se muestran ejemplos reales de uso del servicio web de datos abiertos y el código R necesario para ejecutar las acciones. Se utilizan varios paquetes de R para recibir información de la web, leer y tratar datos en formato *json*.
