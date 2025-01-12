@@ -3,13 +3,14 @@ title: "Tutorial API Eustat"
 output: html_document
 ---
 
-[![Abrir en Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/uxue-sudupe/tutorial-api-eustat/main?urlpath=rstudio)
+[![Abrir con mybinder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/uxue-sudupe/tutorial-api-eustat/main?urlpath=rstudio)
 
 **Introducción**
 
 Este tutorial pretende servir de ayuda para las personas que quieran realizar consultas y obtener datos de la web de Eustat vía API. Se muestran ejemplos reales de uso del servicio web de datos abiertos y el código R necesario para ejecutar las acciones. Se utilizan varios paquetes de R para recibir información de la web, leer y tratar datos en formato *json*.
 
-``` r
+```{r setup, message=FALSE, warning=FALSE}
+
 install.packages(c("httr", "jsonlite", "tidyr", "dplyr", "rjstat", "ggplot2"))
 library(httr)
 library(jsonlite)
@@ -17,11 +18,7 @@ library(tidyr)
 library(dplyr)
 library(rjstat)
 library(ggplot2)
-```
 
-```         
-Installing packages into ‘/usr/local/lib/R/site-library’
-(as ‘lib’ is unspecified)
 ```
 
 **Obtener el catálogo de datos de Eustat**
@@ -30,71 +27,34 @@ Los datos a los que se puede acceder vía API son los que se encuentran en el [b
 
 Es posible acceder al listado completo de los conjuntos de datos a través de su servicio web. En este ejemplo se presentan solo los primeros registros del catálogo.
 
-``` r
+```{r}
+
 DB <- GET("https://www.eustat.eus/bankupx/api/v1/es/DB")
 Catálogo <- fromJSON(rawToChar(DB$content))
 head(Catálogo)
+
 ```
-
-|   | id | type | text | updated |
-|----|----|----|----|----|
-|  | \<chr\> | \<chr\> | \<chr\> | \<chr\> |
-| 1 | PX\_\_feinem_inem06.px | t | Paro registrado de la C.A. de Euskadi por ámbitos territoriales y sexo | 2021-02-17T10:04:22 |
-| 2 | PX\_\_fepycl_pc02cm.px | t | Índice general de precios al consumo (IPC) por Territorio Histórico de la C.A. de Euskadi por índice y mes. Base 2016 (desde 2002) | 2021-02-16T11:15:00 |
-| 3 | PX_0_fepycl_pc02cm.px | t | Índice general de precios al consumo (IPC) por Territorio Histórico de la C.A. de Euskadi por índice y mes. Base 2016 (desde 2002) | 2021-05-14T08:28:37 |
-| 4 | PX_0_fepycl_pc02m.px | t | Índice general de precios al consumo (IPC) de la C.A. de Euskadi y del Estado por índice y mes. Base 2016 (desde 2002) | 2021-05-14T08:28:37 |
-| 5 | PX_010121_cesce_esce01.px | t | Población de la C.A. de Euskadi por territorio histórico, sexo, grupo de edad cumplida y escenario. 2050 | 2021-02-10T11:10:41 |
-| 6 | PX_010121_cesce_esce01b.px | t | Población de la C.A. de Euskadi por territorio histórico, sexo, grupo de edad cumplida y escenario. 2061 | 2021-02-10T12:21:50 |
-
-: A data.frame: 6 × 4
 
 **Idiomas**
 
 Se pueden obtener los mismos datos en euskera o en inglés. Solo hay que modificar la dirección de la *url* en la parte que contiene el idioma, `www.eustat.eus/bankupx/api/v1/[idioma]/DB`, y reemplazar *es* por *eu* o *en*. Por ejemplo, en euskera sería así:
 
-``` r
+```{r}
+
 DB <- GET("https://www.eustat.eus/bankupx/api/v1/eu/DB")
 Katalogoa <- fromJSON(rawToChar(DB$content))
 head(Katalogoa)
+
 ```
-
-|   | id | type | text | updated |
-|----|----|----|----|----|
-|  | \<chr\> | \<chr\> | \<chr\> | \<chr\> |
-| 1 | PX\_\_feinem_inem06.px | t | Euskal AEko erregistratutako langabezia, lurralde eremuaren eta sexuaren arabera | 2021-02-17T10:04:22 |
-| 2 | PX\_\_fepycl_pc02cm.px | t | Euskal AEko eta Estatuko kontsumorako prezioen indize orokorra (KPI), Lurralde Historikoaren, indizearen eta hilaren arabera. Oinarria 2016 (2002tik) | 2021-02-16T11:15:00 |
-| 3 | PX_0_fepycl_pc02cm.px | t | Euskal AEko eta Estatuko kontsumorako prezioen indize orokorra (KPI), Lurralde Historikoaren, indizearen eta hilaren arabera. Oinarria 2016 (2002tik) | 2021-05-14T08:28:37 |
-| 4 | PX_0_fepycl_pc02m.px | t | Euskal AEko eta Estatuko kontsumorako prezioen indize orokorra (KPI), indizearen eta hilaren arabera. Oinarria 2016 (2002tik) | 2021-05-14T08:28:37 |
-| 5 | PX_010121_cesce_esce01.px | t | Euskal AEko biztanleria, eszenategiaren, lurraldearen, sexuaren eta adin-beteko taldeen arabera. 2050 | 2021-02-10T11:10:41 |
-| 6 | PX_010121_cesce_esce01b.px | t | Euskal AEko biztanleria, eszenategiaren, lurraldearen, sexuaren eta adin-beteko taldeen arabera. 2061 | 2021-02-10T12:21:50 |
-
-: A data.frame: 6 × 4
 
 **Busqueda de un conjunto de datos de interés**
 
 Podemos hacer búsquedas en este índice o tabla de contenidos para identificar los datos que nos interesan. Podemos, por ejemplo, buscar aquellos conjuntos de datos que hagan referencia al paro.
 
-``` r
+```{r}
 id_paro <- Catálogo %>% filter(grepl("paro", text))
 id_paro
 ```
-
-| id | type | text | updated |
-|----|----|----|----|
-| \<chr\> | \<chr\> | \<chr\> | \<chr\> |
-| PX_010152_cepv2_pp03.px | t | Tasa de paro de la población de 16 y más años de la C.A. de Euskadi por territorio, edad y sexo | 2021-02-10T11:02:49 |
-| PX_010152_cepv2_pp04a.px | t | Tasa de paro de la población de 16 y más años de la C.A. de Euskadi por ámbitos territoriales y sexo | 2021-02-10T11:25:00 |
-| PX_050403_cpra_tab01.px | t | Tasas de actividad, ocupación y paro de la población de 16 y más años de la C.A. de Euskadi por territorio histórico, sexo y trimestre (%) | 2021-04-23T07:56:46 |
-| PX_050403_cpra_tab02.px | t | Tasas de actividad, ocupación y paro de la población de 16 y más años de la C.A. de Euskadi por territorio histórico, edad y trimestre (%) | 2021-04-23T07:56:45 |
-| PX_050403_cpra_tab03.px | t | Tasas de actividad, ocupación y paro de la población de 16 y más años de la C.A. de Euskadi por territorio histórico, nivel instrucción y trimestre (%) | 2021-04-23T07:56:46 |
-| PX_050403_cpra_tab14.px | t | Tasas de actividad, ocupación y paro de la población de 16 y más años de la C.A. de Euskadi por territorio histórico, nivel de estudios terminados y trimestre (%) | 2021-04-23T07:56:45 |
-| PX_050403_cpra_tab17.px | t | Tasas de actividad, ocupación y paro de la población de 16 y más años de la C.A. de Euskadi por territorio histórico, nacionalidad y trimestre (%) | 2021-04-23T07:56:45 |
-| PX_050403_cpra_tab19.px | t | Tasas de actividad, ocupación y paro de la población de 16 y más años de la C.A. de Euskadi por capitales, sexo y trimestre (%) | 2021-04-23T07:56:44 |
-| PX_050404_femt_cen01.px | t | Tasa de actividad, tasa de paro y coeficiente de ocupación de la población de 16 a 64 años de la C.A. de Euskadi por comarca (11 comarcas) | 2021-02-10T11:15:05 |
-| PX_050404_femt_cen02.px | t | Tasa de actividad, tasa de paro y coeficiente de ocupación de la población de 16 a 64 años de la C.A. de Euskadi por comarca (40 comarcas) | 2021-02-10T11:15:06 |
-| PX_050407_cempa_empa_pp41.px | t | Tasa de paro de la población de 16 y más años de la C.A. de Euskadi por ámbitos territoriales y sexo | 2021-02-10T12:19:38 |
-
-: A data.frame: 11 × 4
 
 El campo "id" contiene la dirección en la que se encuentran los datos dentro del banco de datos de Eustat. "type" indica el formato en el que se encuentran los datos, siendo "t" una tabla, y "text" es la descripción del conjunto de datos. El campo "updated" contiene la fecha de la última publicación del conjunto de datos. ***Atención! la fecha de última actualización no está bien recogida***
 
@@ -102,22 +62,11 @@ El campo "id" contiene la dirección en la que se encuentran los datos dentro de
 
 Se puede ordenar la tabla de contenidos por la fecha de última publicación, para saber cuáles son los datos más recientes en la web de Eustat. ***Atención! la fecha de última actualización no está bien recogida***
 
-``` r
+```{r}
+
 Catálogo_ordenado <- Catálogo %>% arrange(desc(updated))
 head(Catálogo_ordenado)
 ```
-
-|   | id | type | text | updated |
-|----|----|----|----|----|
-|  | \<chr\> | \<chr\> | \<chr\> | \<chr\> |
-| 1 | PX_112312_cipi_ipi1m_igcdb.px | t | Índice de producción industrial de la C.A. de Euskadi por territorio histórico, tipo de serie, índice y mes | 2021-06-03T07:58:27 |
-| 2 | PX_112312_cipi_ipi1m_38cdb.px | t | Índice de producción industrial de la C.A. de Euskadi por sector (A38), tipo de serie, índice y mes | 2021-06-03T07:58:26 |
-| 3 | PX_112312_cipi_ipi1m_dcdb.px | t | Índice de producción industrial de la C.A. de Euskadi por territorio histórico, destino económico de los bienes, tipo de serie, índice y mes | 2021-06-03T07:58:26 |
-| 4 | PX_112312_cipi_ipi1m_21cdb.px | t | Índice de producción industrial de la C.A. de Euskadi por territorio histórico, sector (A21), tipo de serie, índice y mes | 2021-06-03T07:58:25 |
-| 5 | PX_133000_chost_hos03b.px | t | Macromagnitudes de la C.A. de Euskadi por principales agregados, territorio histórico y grupo CNAE-09 (miles de euros) | 2021-06-02T08:07:22 |
-| 6 | PX_133000_chost_hos04b.px | t | Cuenta de pérdidas y ganancias de la C.A. de Euskadi por principales variables, territorio histórico y grupo CNAE-09 (miles de euros) | 2021-06-02T08:07:22 |
-
-: A data.frame: 6 × 4
 
 **Obtener los metadatos de una tabla**
 
@@ -129,197 +78,17 @@ Accedemos, por ejemplo, a los metadatos de la tabla que contiene los datos de po
 
 <https://www.eustat.eus/bankupx/api/v1/es/DB/PX_010154_cepv1_ep06b.px>
 
-``` r
+```{r}
+
 metadatos<- GET("https://www.eustat.eus/bankupx/api/v1/es/DB/PX_010154_cepv1_ep06b.px")
 metadatos_población <- fromJSON(rawToChar(metadatos$content))
 metadatos_población
+
 ```
-
-<dl>
-
-<dt>$title</dt>
-        <dd>'Población de la C.A. de Euskadi por ámbitos territoriales, grandes grupos de edad cumplida y sexo. 2001/01/01 - 2024/01/01'</dd>
-    <dt>$variables</dt>
-
-```         
-<dd><table class="dataframe">
-```
-
-<caption>A data.frame: 4 × 5</caption>
-
-<thead>
-
-<tr>
-
-<th>
-
-</th>
-
-<th scope="col">
-
-code
-
-</th>
-
-<th scope="col">
-
-text
-
-</th>
-
-<th scope="col">
-
-values
-
-</th>
-
-<th scope="col">
-
-valueTexts
-
-</th>
-
-<th scope="col">
-
-time
-
-</th>
-
-</tr>
-
-<tr>
-
-<th>
-
-</th>
-
-<th scope="col">
-
-\<chr\>
-
-</th>
-
-<th scope="col">
-
-\<chr\>
-
-</th>
-
-<th scope="col">
-
-\<list\>
-
-</th>
-
-<th scope="col">
-
-\<list\>
-
-</th>
-
-<th scope="col">
-
-\<lgl\>
-
-</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-<tr>
-
-<th scope="row">
-
-1
-
-</th>
-
-<td>ámbitos territoriales</td>
-
-<td>ámbitos territoriales</td>
-
-<td>00001, 01 , 48 , 20 , 110 , 120 , 130 , 140 , 150 , 160 , 170 , 180 , 190 , 200 , 210 , 220 , 230 , 240 , 250 , 260 , 270 , 280 , 290 , 300 , 48001, 20001, 48002, 20002, 01051, 20016, 20003, 48911, 20004, 20005, 01001, 20006, 48912, 20906, 20007, 20008, 48003, 48004, 01002, 20009, 20010, 20011, 01049, 48005, 20012, 01003, 48006, 48093, 20013, 01006, 01037, 48009, 20055, 48914, 01008, 48010, 48011, 48023, 48008, 01004, 01009, 20014, 20903, 20015, 48091, 48070, 01010, 20017, 20018, 48012, 20904, 48090, 01011, 48013, 48014, 01013, 48015, 20019, 48092, 20020, 20021, 48016, 01014, 20022, 20074, 48017, 01016, 48018, 48019, 20023, 20024, 48020, 48021, 01017, 20029, 48901, 48026, 20069, 48027, 48028, 20030, 48031, 01021, 01022, 20031, 20033, 20032, 48032, 01023, 48902, 48033, 48034, 20067, 20066, 01046, 48079, 20034, 48029, 48030, 20035, 48906, 48035, 20038, 20037, 48036, 48037, 48038, 48039, 48040, 48041, 20907, 48046, 20039, 48044, 48047, 48042, 48043, 48045, 01056, 20040, 20041, 20036, 20042, 48048, 20043, 48094, 20044, 20045, 01901, 20046, 01027, 48049, 20047, 48910, 48050, 48022, 48907, 01019, 01020, 01028, 01030, 01031, 01032, 48051, 01902, 01033, 48052, 20048, 20902, 01036, 48053, 20049, 20050, 20051, 20052, 01058, 20068, 48054, 48057, 48055, 48056, 01034, 48081, 20053, 20054, 48903, 48058, 48059, 48060, 48061, 20901, 48062, 48063, 48064, 01039, 48066, 48068, 48069, 48007, 48908, 48071, 20057, 20056, 48067, 48909, 01041, 20063, 01042, 20058, 48073, 20059, 20076, 20905, 20060, 20061, 20062, 48075, 48083, 48072, 01043, 20064, 01044, 48077, 48078, 01047, 01052, 01053, 48082, 20070, 48084, 48904, 48085, 48086, 20065, 48076, 20071, 48087, 48088, 48065, 48089, 48074, 01054, 20072, 20077, 20073, 01055, 48080, 20075, 01057, 01059, 01060, 48095, 20078, 01061, 48096, 01062, 48905, 48097, 20079, 48024, 48025, 20025, 20026, 20027, 48913, 01018, 48915, 20028, 01063, 20081, 20080, 48916</td>
-
-<td>C.A. de Euskadi , Araba/Álava , Bizkaia , Gipuzkoa , Añana (comarca) , Arabako Lautada / Llanada Alavesa , Arabako Mendialdea / Montaña Alavesa , Arratia-Nerbioi / Arratia-Nervión , Bidasoa Beherea / Bajo Bidasoa , Bilbo Handia / Gran Bilbao , Debabarrena / Bajo Deba , Debagoiena / Alto Deba , Donostialdea , Durangaldea / Duranguesado , Enkartazioak / Encartaciones , Arabako Errioxa / Rioja Alavesa , Gernika-Bermeo , Goierri , Gorbeialdea / Estribaciones del Gorbea , Arabako Kantaurialdea / Cantábrica Alavesa, Markina-Ondarroa , Plentzia-Mungia , Tolosaldea , Urola Kosta , Abadiño , Abaltzisketa , Abanto y Ciérvana-Abanto Zierbena , Aduna , Agurain/Salvatierra , Aia , Aizarnazabal , Ajangiz , Albiztur , Alegia , Alegría-Dulantzi , Alkiza , Alonsotegi , Altzaga , Altzo , Amezketa , Amorebieta-Etxano , Amoroto , Amurrio , Andoain , Anoeta , Antzuola , Añana , Arakaldo , Arama , Aramaio , Arantzazu , Areatza , Aretxabaleta , Armiñón , Arraia-Maeztu , Arrankudiaga-Zollo , Arrasate/Mondragón , Arratzu , Arratzua-Ubarrundia , Arrieta , Arrigorriaga , Artea , Artzentales , Artziniega , Asparrena , Asteasu , Astigarraga , Ataun , Atxondo , Aulesti , Ayala/Aiara , Azkoitia , Azpeitia , Bakio , Baliarrain , Balmaseda , Baños de Ebro/Mañueta , Barakaldo , Barrika , Barrundia , Basauri , Beasain , Bedia , Beizama , Belauntza , Berango , Berantevilla , Berastegi , Bergara , Bermeo , Bernedo , Berriatua , Berriz , Berrobi , Bidania-Goiatz , Bilbao , Busturia , Campezo/Kanpezu , Deba , Derio , Dima , Donostia / San Sebastián , Durango , Ea , Eibar , Elantxobe , Elburgo/Burgelu , Elciego , Elduain , Elgeta , Elgoibar , Elorrio , Elvillar/Bilar , Erandio , Ereño , Ermua , Errenteria , Errezil , Erriberagoitia/Ribera Alta , Errigoiti , Eskoriatza , Etxebarri , Etxebarria , Ezkio-Itsaso , Forua , Fruiz , Gabiria , Gaintza , Galdakao , Galdames , Gamiz-Fika , Garai , Gatika , Gautegiz Arteaga , Gaztelu , Gernika-Lumo , Getaria , Getxo , Gizaburuaga , Gordexola , Gorliz , Güeñes , Harana/Valle de Arana , Hernani , Hernialde , Hondarribia , Ibarra , Ibarrangelu , Idiazabal , Igorre , Ikaztegieta , Irun , Iruña Oka/Iruña de Oca , Irura , Iruraiz-Gauna , Ispaster , Itsasondo , Iurreta , Izurtza , Karrantza Harana/Valle de Carranza , Kortezubi , Kripan , Kuartango , Labastida/Bastida , Lagrán , Laguardia , Lanciego/Lantziego , Lanestosa , Lantarón , Lapuebla de Labarca , Larrabetzu , Larraul , Lasarte-Oria , Laudio/Llodio , Laukiz , Lazkao , Leaburu , Legazpi , Legorreta , Legutio , Leintz-Gatzaga , Leioa , Lekeitio , Lemoa , Lemoiz , Leza , Lezama , Lezo , Lizartza , Loiu , Mallabia , Mañaria , Markina-Xemein , Maruri-Jatabe , Mendaro , Mendata , Mendexa , Meñaka , Moreda de Álava/Moreda Araba , Morga , Mundaka , Mungia , Munitibar-Arbatzegi Gerrikaitz , Murueta , Muskiz , Mutiloa , Mutriku , Muxika , Nabarniz , Navaridas , Oiartzun , Okondo , Olaberria , Ondarroa , Oñati , Ordizia , Orendain , Orexa , Orio , Ormaiztegi , Orozko , Ortuella , Otxandio , Oyón-Oion , Pasaia , Peñacerrada-Urizaharra , Plentzia , Portugalete , Ribera Baja/Erriberabeitia , Samaniego , San Millán/Donemiliaga , Santurtzi , Segura , Sestao , Sondika , Sopela , Sopuerta , Soraluze-Placencia de las Armas , Sukarrieta , Tolosa , Trucios-Turtzioz , Ubide , Ugao-Miraballes , Urduliz , Urduña/Orduña , Urkabustaiz , Urnieta , Urretxu , Usurbil , Valdegovía/Gaubea , Valle de Trápaga-Trapagaran , Villabona , Villabuena de Álava/Eskuernaga , Vitoria-Gasteiz , Yécora/Iekora , Zaldibar , Zaldibia , Zalduondo , Zalla , Zambrana , Zamudio , Zaratamo , Zarautz , Zeanuri , Zeberio , Zegama , Zerain , Zestoa , Zierbena , Zigoitia , Ziortza-Bolibar , Zizurkil , Zuia , Zumaia , Zumarraga , Usansolo</td>
-
-<td>NA</td>
-
-</tr>
-
-<tr>
-
-<th scope="row">
-
-2
-
-</th>
-
-<td>grandes grupos de edad cumplida</td>
-
-<td>grandes grupos de edad cumplida</td>
-
-<td>10, 20, 30, 40</td>
-
-<td>[Total , 0 - 19 , 20 - 64, \>= 65]{style="white-space:pre-wrap"}</td>
-
-<td>[NA]{style="white-space:pre-wrap"}</td>
-
-</tr>
-
-<tr>
-
-<th scope="row">
-
-3
-
-</th>
-
-<td>sexo</td>
-
-<td>sexo</td>
-
-<td>10, 20, 30</td>
-
-<td>Total , Hombres, Mujeres</td>
-
-<td>NA</td>
-
-</tr>
-
-<tr>
-
-<th scope="row">
-
-4
-
-</th>
-
-<td>periodo</td>
-
-<td>periodo</td>
-
-<td>20010101, 20020101, 20030101, 20040101, 20050101, 20060101, 20070101, 20080101, 20090101, 20100101, 20110101, 20120101, 20130101, 20140101, 20150101, 20160101, 20170101, 20180101, 20190101, 20200101, 20210101, 20220101, 20220701, 20230101, 20230701, 20240101</td>
-
-<td>2001/01/01, 2002/01/01, 2003/01/01, 2004/01/01, 2005/01/01, 2006/01/01, 2007/01/01, 2008/01/01, 2009/01/01, 2010/01/01, 2011/01/01, 2012/01/01, 2013/01/01, 2014/01/01, 2015/01/01, 2016/01/01, 2017/01/01, 2018/01/01, 2019/01/01, 2020/01/01, 2021/01/01, 2022/01/01, 2022/07/01, 2023/01/01, 2023/07/01, 2024/01/01</td>
-
-<td>TRUE</td>
-
-</tr>
-
-</tbody>
-
-</table>
-
-</dd>
-
-</dl>
 
 Los metadatos contienen el título de la tabla, junto con los códigos y literales de las variables y los valores. Podemos obtener una tabla de correspondencias de los códigos y literales de los valores.
 
-``` r
+```{r}
 variables <- metadatos_población$variables
 
 df_variables <- variables %>%
@@ -332,78 +101,11 @@ df_variables <- variables %>%
 df_variables
 ```
 
-| code | text | values | valueTexts | time |
-|----|----|----|----|----|
-| \<chr\> | \<chr\> | \<chr\> | \<chr\> | \<lgl\> |
-| ámbitos territoriales | ámbitos territoriales | 00001 | C.A. de Euskadi | NA |
-| ámbitos territoriales | ámbitos territoriales | 01 | Araba/Álava | NA |
-| ámbitos territoriales | ámbitos territoriales | 48 | Bizkaia | NA |
-| ámbitos territoriales | ámbitos territoriales | 20 | Gipuzkoa | NA |
-| ámbitos territoriales | ámbitos territoriales | 110 | Añana (comarca) | NA |
-| ámbitos territoriales | ámbitos territoriales | 120 | Arabako Lautada / Llanada Alavesa | NA |
-| ámbitos territoriales | ámbitos territoriales | 130 | Arabako Mendialdea / Montaña Alavesa | NA |
-| ámbitos territoriales | ámbitos territoriales | 140 | Arratia-Nerbioi / Arratia-Nervión | NA |
-| ámbitos territoriales | ámbitos territoriales | 150 | Bidasoa Beherea / Bajo Bidasoa | NA |
-| ámbitos territoriales | ámbitos territoriales | 160 | Bilbo Handia / Gran Bilbao | NA |
-| ámbitos territoriales | ámbitos territoriales | 170 | Debabarrena / Bajo Deba | NA |
-| ámbitos territoriales | ámbitos territoriales | 180 | Debagoiena / Alto Deba | NA |
-| ámbitos territoriales | ámbitos territoriales | 190 | Donostialdea | NA |
-| ámbitos territoriales | ámbitos territoriales | 200 | Durangaldea / Duranguesado | NA |
-| ámbitos territoriales | ámbitos territoriales | 210 | Enkartazioak / Encartaciones | NA |
-| ámbitos territoriales | ámbitos territoriales | 220 | Arabako Errioxa / Rioja Alavesa | NA |
-| ámbitos territoriales | ámbitos territoriales | 230 | Gernika-Bermeo | NA |
-| ámbitos territoriales | ámbitos territoriales | 240 | Goierri | NA |
-| ámbitos territoriales | ámbitos territoriales | 250 | Gorbeialdea / Estribaciones del Gorbea | NA |
-| ámbitos territoriales | ámbitos territoriales | 260 | Arabako Kantaurialdea / Cantábrica Alavesa | NA |
-| ámbitos territoriales | ámbitos territoriales | 270 | Markina-Ondarroa | NA |
-| ámbitos territoriales | ámbitos territoriales | 280 | Plentzia-Mungia | NA |
-| ámbitos territoriales | ámbitos territoriales | 290 | Tolosaldea | NA |
-| ámbitos territoriales | ámbitos territoriales | 300 | Urola Kosta | NA |
-| ámbitos territoriales | ámbitos territoriales | 48001 | Abadiño | NA |
-| ámbitos territoriales | ámbitos territoriales | 20001 | Abaltzisketa | NA |
-| ámbitos territoriales | ámbitos territoriales | 48002 | Abanto y Ciérvana-Abanto Zierbena | NA |
-| ámbitos territoriales | ámbitos territoriales | 20002 | Aduna | NA |
-| ámbitos territoriales | ámbitos territoriales | 01051 | Agurain/Salvatierra | NA |
-| ámbitos territoriales | ámbitos territoriales | 20016 | Aia | NA |
-| ⋮ | ⋮ | ⋮ | ⋮ | ⋮ |
-| grandes grupos de edad cumplida | grandes grupos de edad cumplida | 40 | \>= 65 | NA |
-| sexo | sexo | 10 | Total | NA |
-| sexo | sexo | 20 | Hombres | NA |
-| sexo | sexo | 30 | Mujeres | NA |
-| periodo | periodo | 20010101 | 2001/01/01 | TRUE |
-| periodo | periodo | 20020101 | 2002/01/01 | TRUE |
-| periodo | periodo | 20030101 | 2003/01/01 | TRUE |
-| periodo | periodo | 20040101 | 2004/01/01 | TRUE |
-| periodo | periodo | 20050101 | 2005/01/01 | TRUE |
-| periodo | periodo | 20060101 | 2006/01/01 | TRUE |
-| periodo | periodo | 20070101 | 2007/01/01 | TRUE |
-| periodo | periodo | 20080101 | 2008/01/01 | TRUE |
-| periodo | periodo | 20090101 | 2009/01/01 | TRUE |
-| periodo | periodo | 20100101 | 2010/01/01 | TRUE |
-| periodo | periodo | 20110101 | 2011/01/01 | TRUE |
-| periodo | periodo | 20120101 | 2012/01/01 | TRUE |
-| periodo | periodo | 20130101 | 2013/01/01 | TRUE |
-| periodo | periodo | 20140101 | 2014/01/01 | TRUE |
-| periodo | periodo | 20150101 | 2015/01/01 | TRUE |
-| periodo | periodo | 20160101 | 2016/01/01 | TRUE |
-| periodo | periodo | 20170101 | 2017/01/01 | TRUE |
-| periodo | periodo | 20180101 | 2018/01/01 | TRUE |
-| periodo | periodo | 20190101 | 2019/01/01 | TRUE |
-| periodo | periodo | 20200101 | 2020/01/01 | TRUE |
-| periodo | periodo | 20210101 | 2021/01/01 | TRUE |
-| periodo | periodo | 20220101 | 2022/01/01 | TRUE |
-| periodo | periodo | 20220701 | 2022/07/01 | TRUE |
-| periodo | periodo | 20230101 | 2023/01/01 | TRUE |
-| periodo | periodo | 20230701 | 2023/07/01 | TRUE |
-| periodo | periodo | 20240101 | 2024/01/01 | TRUE |
-
-: A tibble: 309 × 5
-
 **Obtener los datos de una tabla**
 
 Para disponer de los datos de las tablas, debemos realizar una consulta a la misma dirección del banco de datos utilizada para obtener los metadatos. Usamos el paquete *rjstat* para trabajar con los datos que vamos a obtener en formato *json-stat*. En este ejemplo, consultamos todos los datos de la tabla de población por grupos de edad y sexo.
 
-``` r
+```{r}
 url <- "https://www.eustat.eus/bankupx/api/v1/es/DB/PX_010154_cepv1_ep06b.px"
 consulta <- '{"query":[]}'
 
@@ -413,39 +115,15 @@ Población <- tabla[[1]]
 head(Población)
 ```
 
-|   | ámbitos territoriales | grandes grupos de edad cumplida | sexo | periodo | value |
-|----|----|----|----|----|----|
-|  | \<chr\> | \<chr\> | \<chr\> | \<chr\> | \<int\> |
-| 1 | C.A. de Euskadi | Total | Total | 2001/01/01 | 2079210 |
-| 2 | C.A. de Euskadi | Total | Total | 2002/01/01 | 2085058 |
-| 3 | C.A. de Euskadi | Total | Total | 2003/01/01 | 2089950 |
-| 4 | C.A. de Euskadi | Total | Total | 2004/01/01 | 2095014 |
-| 5 | C.A. de Euskadi | Total | Total | 2005/01/01 | 2104396 |
-| 6 | C.A. de Euskadi | Total | Total | 2006/01/01 | 2115383 |
-
-: A data.frame: 6 × 5
-
 **Obtener los datos de una tabla, con códigos**
 
 Es posible que nos interese disponer de estos datos con los códigos de las variables, y no con el texto o la descripción. En ese caso, solicitamos que los nombres se capturen como código (naming="id") y no como texto (naming="label").
 
-``` r
+```{r}
 tabla <- fromJSONstat(content(d.tmp, "text"), naming = "id", use_factors = FALSE, silent = FALSE)
 Población_codigo <- tabla[[1]]
 head(Población_codigo)
 ```
-
-|   | ámbitos territoriales | grandes grupos de edad cumplida | sexo | periodo | value |
-|----|----|----|----|----|----|
-|  | \<chr\> | \<chr\> | \<chr\> | \<chr\> | \<int\> |
-| 1 | 00001 | 10 | 10 | 20010101 | 2079210 |
-| 2 | 00001 | 10 | 10 | 20020101 | 2085058 |
-| 3 | 00001 | 10 | 10 | 20030101 | 2089950 |
-| 4 | 00001 | 10 | 10 | 20040101 | 2095014 |
-| 5 | 00001 | 10 | 10 | 20050101 | 2104396 |
-| 6 | 00001 | 10 | 10 | 20060101 | 2115383 |
-
-: A data.frame: 6 × 5
 
 En la consulta que hemos realizado hemos pedido todos los datos disponibles, sin seleccionar ningún territorio, grupo de edad, sexo o periodo. Podría pasar que la petición fuera excesiva y se alcance el límite de datos que se pueden recopilar a partir del servicio web.
 
@@ -465,7 +143,7 @@ Tras hacer la selección pulsamos "Continuar" y "Disponer de esta tabla en su ap
 
 <img src="https://raw.githubusercontent.com/uxue-sudupe/tutorial-api-eustat/main/imagen/PIB_consulta.png" alt="Consulta json" width="600"/>
 
-``` r
+```{r}
 url <- "https://www.eustat.eus/bankupx/api/v1/es/DB/PX_170115_ccet_cet04tb.px"
 consulta <- '{"query": [{"code": "tipo de dato","selection": {"filter": "item","values": ["20"]}},
             {"code": "tipo de serie","selection": {"filter": "item","values": ["20"]}},
@@ -478,23 +156,11 @@ PIB <- tabla[[1]]
 head(PIB)
 ```
 
-|   | territorio histórico | tipo de dato | tipo de serie | tipo de medida | periodo | value |
-|----|----|----|----|----|----|----|
-|  | \<chr\> | \<chr\> | \<chr\> | \<chr\> | \<chr\> | \<dbl\> |
-| 1 | C.A. de Euskadi | Tasa interanual | Datos corregidos de efectos estacionales y de calendario | Precios corrientes (miles euros) | 1995-1 | NA |
-| 2 | C.A. de Euskadi | Tasa interanual | Datos corregidos de efectos estacionales y de calendario | Precios corrientes (miles euros) | 1995-2 | NA |
-| 3 | C.A. de Euskadi | Tasa interanual | Datos corregidos de efectos estacionales y de calendario | Precios corrientes (miles euros) | 1995-3 | NA |
-| 4 | C.A. de Euskadi | Tasa interanual | Datos corregidos de efectos estacionales y de calendario | Precios corrientes (miles euros) | 1995-4 | NA |
-| 5 | C.A. de Euskadi | Tasa interanual | Datos corregidos de efectos estacionales y de calendario | Precios corrientes (miles euros) | 1996-1 | 6.5 |
-| 6 | C.A. de Euskadi | Tasa interanual | Datos corregidos de efectos estacionales y de calendario | Precios corrientes (miles euros) | 1996-2 | 7.2 |
-
-: A data.frame: 6 × 6
-
 **Visualización de los datos**
 
 Ahora podemos usar la información obtenida para su tratamiento posterior, para hacer gráficos y tablas, o cualquier otro uso.
 
-``` r
+```{r}
 ggplot(PIB, aes(x = periodo, y = value, color = `territorio histórico`, group = `territorio histórico`)) +
   geom_line(size = 1) +
   theme_minimal() +
@@ -510,21 +176,11 @@ ggplot(PIB, aes(x = periodo, y = value, color = `territorio histórico`, group =
     y = "Tasa interanual")
 ```
 
-```         
-Warning message:
-“[1m[22mUsing `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
-[36mℹ[39m Please use `linewidth` instead.”
-Warning message:
-“[1m[22mRemoved 76 rows containing missing values or values outside the scale range
-(`geom_line()`).”
-```
-
-![png](/mnt/data/Tutorial_API_Eustat_R_24_1.png)
-
 **Guardar los datos**
 
 Finalmente guardamos los datos obtenidos en formato csv, o cualquier otro formato permitido.
 
-``` r
+```{r}
+
 write.csv(PIB, file='PIB_trimestral_TH.csv')
 ```
