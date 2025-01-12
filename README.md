@@ -5,13 +5,13 @@ Este repositorio contiene tres tutoriales diseñados para guiarte en el uso de l
 ## Tutoriales disponibles
 
 ### 1. Tutorial en R (RMarkdown)
-- Archivo: [`Tutorial_API_Eustat_R.Rmd`](Tutorial_API_Eustat_R.Rmd)
-  
+- [Tutorial API Eustat R RMarkdown](Tutorial_API_Eustat_R.Rmd)  
+
 
 ### 2. Tutorial en R (Notebook)
-- Archivo: [`Tutorial_API_Eustat_R.ipynb`](Tutorial_API_Eustat_R.ipynb)
+- [Tutorial API Eustat R Notebook](Tutorial_API_Eustat_R.ipynb)  
 
 
 ### 3. Tutorial en Python (Notebook)
-- Archivo: [`Tutorial_API_Eustat_Python.ipynb`](Tutorial_API_Eustat_Python.ipynb)
+- [Tutorial API Eustat Python Notebook](Tutorial_API_Eustat_Python.ipynb)  
 
