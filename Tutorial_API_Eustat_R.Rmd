@@ -3,7 +3,7 @@ title: "Tutorial API Eustat"
 output: html_document
 ---
 
-[![Abrir con mybinder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/uxue-sudupe/tutorial-api-eustat/main?urlpath=rstudio)
+[![Abrir con mybinder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/uxue-sudupe/tutorial-api-eustat/main?urlpath=rstudio&binder_url=https%3A%2F%2Fnotebooks.gesis.org%2Fbinder)
 
 **Introducción**
 
