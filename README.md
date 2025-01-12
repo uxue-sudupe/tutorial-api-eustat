@@ -6,9 +6,7 @@ Este repositorio contiene tres tutoriales diseñados para guiarte en el uso de l
 
 ### 1. Tutorial en R (RMarkdown)
 - Archivo: [`Tutorial_API_Eustat_R.Rmd`](Tutorial_API_Eustat_R.Rmd)
-- Abrir directamente en MyBinder:  
-  [![Abrir con mybinder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/uxue-sudupe/tutorial-api-eustat/main?urlpath=rstudio)
-
+  
 
 ### 2. Tutorial en R (Notebook)
 - Archivo: [`Tutorial_API_Eustat_R.ipynb`](Tutorial_API_Eustat_R.ipynb)
