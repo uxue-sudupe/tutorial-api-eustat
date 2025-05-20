@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Ejemplo API Eustat + Highcharts</title>
+  <script src="https://code.highcharts.com/highcharts.js"></script>
+</head>
+<body>
+  <h2>Tasa de paro por sexo en Euskadi</h2>
+  <div id="paro-chart" style="height: 500px; width: 100%;"></div>
+
+  <script>
+    // Hacemos la llamada POST a la API de Eustat (PXStat)
+    fetch("https://www.eustat.eus/bankupx/api/v1/es/DB/PX_050407_cempa_empa_pp41.px", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ "query": [] }) // sin filtros, trae todo
+    })
+    .then(response => response.json())
+    .then(json => {
+      // Datos en formato JSON-stat
+      const dataset = json.dataset;
+
+      const dimensiones = dataset.dimension;
+      const sexos = dimensiones.sexo.category.label;
+      const años = dimensiones.periodo.category.label;
+      const ambitos = dimensiones["ámbitos territoriales"].category.label;
+
+      const valores = dataset.value;
+
+      // Obtener posición de los valores
+      const indices = [];
+
+      const totalAños = Object.keys(años).length;
+      const totalSexos = Object.keys(sexos).length;
+      const totalAmbitos = Object.keys(ambitos).length;
+
+      // Asumiendo orden: ámbito > sexo > periodo
+      for (let i = 0; i < totalAmbitos; i++) {
+        for (let j = 0; j < totalSexos; j++) {
+          for (let k = 0; k < totalAños; k++) {
+            indices.push({
+              ambito: Object.keys(ambitos)[i],
+              sexo: Object.keys(sexos)[j],
+              periodo: Object.keys(años)[k],
+              valor: valores[i * totalSexos * totalAños + j * totalAños + k]
+            });
+          }
+        }
+      }
+
+      // Filtramos solo Euskadi (00001)
+      const datosEuskadi = indices.filter(d => d.ambito === "00001");
+
+      // Agrupamos por sexo
+      const hombres = datosEuskadi.filter(d => d.sexo === "10").map(d => [parseInt(años[d.periodo]), d.valor]);
+      const mujeres = datosEuskadi.filter(d => d.sexo === "20").map(d => [parseInt(años[d.periodo]), d.valor]);
+
+      // Ordenamos por año
+      hombres.sort((a, b) => a[0] - b[0]);
+      mujeres.sort((a, b) => a[0] - b[0]);
+
+      // Dibujamos el gráfico
+      Highcharts.chart('paro-chart', {
+        chart: {
+          type: 'scatter'
+        },
+        title: {
+          text: 'Tasa de paro en Euskadi por sexo'
+        },
+        xAxis: {
+          title: { text: 'Año' },
+          allowDecimals: false
+        },
+        yAxis: {
+          title: { text: 'Tasa de paro (%)' }
+        },
+        tooltip: {
+          pointFormat: 'Año: <b>{point.x}</b><br>Tasa: <b>{point.y}%</b>'
+        },
+        series: [{
+          name: 'Hombres',
+          color: '#1f77b4',
+          data: hombres
+        }, {
+          name: 'Mujeres',
+          color: '#d62728',
+          data: mujeres
+        }]
+      });
+    })
+    .catch(error => {
+      console.error("Error al obtener datos de la API de Eustat:", error);
+      alert("Error al cargar los datos");
+    });
+  </script>
+</body>
+</html>
